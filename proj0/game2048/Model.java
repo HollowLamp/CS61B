@@ -113,12 +113,53 @@ public class Model extends Observable {
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
-
+        if(side != Side.NORTH)//调整方向
+            board.setViewingPerspective(side);
+        for(int i = 0;i<board.size();i++){
+            if(dealcol(i))//逐列处理
+                changed = true;
+        }
         checkGameOver();
         if (changed) {
             setChanged();
         }
+        if(side != Side.NORTH)//调整方向
+            board.setViewingPerspective(Side.NORTH);
         return changed;
+    }
+    public boolean dealcol(int col){
+        int place = 3;//标记当前遍历到的非空格应该被放到哪里，row=3在最上方
+        boolean isFirst = true;//是不是第一个被遍历到的非空格
+        boolean moved = false;//是否移动过
+        for(int i = this.board.size() - 1; i >= 0; i--){
+            if(this.board.tile(col, i) != null){
+                Tile t = this.board.tile(col,i);//当前格
+                Tile tmp = this.board.tile(col, place);//目标格
+                if(isFirst) {//如果是第一个
+                    this.board.move(col, place, t);//直接移动
+                    if(i != place) moved = true;//确实移动了
+                    isFirst = false;
+                }
+                else {//不是第一个的情况，分三类处理
+                    if(tmp != null && tmp.value() == t.value()){//第一类，目标格和本格相同
+                        this.board.move(col, place, t);//合并
+                        score += t.value()*2;
+                        place --;//目标格已经被合并，不再是可以被移动到的格子，向下一格
+                    }
+                    else if(tmp != null && tmp.value() != t.value()){//第二类，目标格非空且与本格不同
+                        place --;//目标格无法合并，向下一格
+                        this.board.move(col, place, t);
+                    }
+                    else if(tmp == null) {//第三类，目标格为空
+                        this.board.move(col, place, t);//直接移动
+                        moved = true;
+                    }
+                }
+            }
+        }
+        if(place != 3)
+            moved = true;//place的变化也代表有移动产生
+        return moved;
     }
 
     /** Checks if the game is over and sets the gameOver variable
@@ -138,6 +179,10 @@ public class Model extends Observable {
      * */
     public static boolean emptySpaceExists(Board b) {
         // TODO: Fill in this function.
+        for (int i = 0; i< b.size(); i++)
+            for (int j=0; j< b.size(); j++)
+                if (b.tile(i, j) == null)
+                    return true;
         return false;
     }
 
@@ -148,6 +193,10 @@ public class Model extends Observable {
      */
     public static boolean maxTileExists(Board b) {
         // TODO: Fill in this function.
+        for (int i = 0; i< b.size(); i++)
+            for (int j=0; j< b.size(); j++)
+                if (b.tile(i, j) != null && b.tile(i, j).value() == MAX_PIECE)
+                    return true;
         return false;
     }
 
@@ -159,6 +208,18 @@ public class Model extends Observable {
      */
     public static boolean atLeastOneMoveExists(Board b) {
         // TODO: Fill in this function.
+        if (emptySpaceExists(b)) return true;
+        else {
+            for (int i = 0; i < b.size(); i++)
+                for (int j = 0; j < b.size(); j++) {
+                    int k = b.tile(i, j).value();
+                    if ((i - 1 >= 0 && b.tile(i - 1, j).value() == k) ||
+                         i + 1 < b.size() && b.tile(i + 1, j).value() == k ||
+                         j - 1 >= 0 && b.tile(i, j-1).value() == k ||
+                         j + 1 < b.size() && b.tile(i, j+1).value() == k)
+                        return true;
+                }
+        }
         return false;
     }
 
