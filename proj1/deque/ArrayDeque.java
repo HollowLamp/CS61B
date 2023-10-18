@@ -67,7 +67,7 @@ public class ArrayDeque<T> {
             return null;
         }
         int start = nextFirst == items.length-1 ? 0 : nextFirst + 1;
-        while(--index > 0){
+        while(--index >= 0){
             start = start == items.length-1 ? 0 : start + 1;
         }
         return items[start];
