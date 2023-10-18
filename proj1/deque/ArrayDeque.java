@@ -1,67 +1,129 @@
 package deque;
 import java.util.Iterator;
-public class ArrayDeque<T> implements Iterable<T>{
+public class ArrayDeque<T> implements Iterable<T>,Deque<T>{
     private T[] items;
     private int size;
     private int nextFirst;
     private int nextLast;
 
-    public ArrayDeque(){
-        items =(T[]) new Object[8];
+    public ArrayDeque() {
+        items = (T[]) new Object[8];
         size = 0;
         nextFirst = 0;
         nextLast = 1;
     }
-    public boolean equals(Object o){
-        if (! (o instanceof ArrayDeque<?>)|| ((ArrayDeque<?>) o).size != this.size){
+
+    public boolean equals(Object o) {
+        if (!(o instanceof ArrayDeque<?>) || ((ArrayDeque<?>) o).size != this.size) {
             return false;
         }
-        for(int i = 0; i < size(); i++){
-            if(((ArrayDeque<?>) o).get(i) != this.get(i)){
+        for (int i = 0; i < size(); i++) {
+            if (((ArrayDeque<?>) o).get(i) != this.get(i)) {
                 return false;
             }
         }
         return true;
     }
-    public Iterator<T> iterator(){
+
+    public Iterator<T> iterator() {
         return new DequeIterator();
     }
 
     private class DequeIterator implements Iterator<T> {
-        private  int wizPos;
+        private int wizPos;
 
-        public DequeIterator(){
-            wizPos = nextFirst == items.length-1 ? 0 : nextFirst + 1;
+        public DequeIterator() {
+            wizPos = nextFirst == items.length - 1 ? 0 : nextFirst + 1;
         }
-        public boolean hasNext(){
-            return  wizPos != nextLast;
+
+        public boolean hasNext() {
+            return wizPos != nextLast;
         }
-        public T next(){
+
+        public T next() {
             T returnItem = items[wizPos];
-            wizPos = wizPos == items.length-1 ? 0 : wizPos + 1;
+            wizPos = wizPos == items.length - 1 ? 0 : wizPos + 1;
             return returnItem;
         }
     }
-        public void addFirst(T item){
-        items[nextFirst] = item;
-        size += 1;
-        nextFirst = nextFirst == 0 ? items.length -1 : nextFirst - 1;
-    }
 
+    private void resize(int capacity) {
+        T[] temp = (T[]) new Object[capacity];
+        nextFirst = nextFirst == items.length - 1 ? 0 : nextFirst + 1;
+        nextLast = nextLast == 0 ? items.length - 1 : nextLast - 1;
+        int min = nextFirst < nextLast ? nextFirst : nextLast;
+        int max = nextFirst > nextLast ? nextFirst : nextLast;
+        if(capacity == size * 2) {
+            if (nextFirst - nextLast == size - 1 || nextLast - nextFirst == size - 1) {
+                for (int i = 0; i < size / 2; i++) {
+                    temp[i] = null;
+                }
+                for (int i = size / 2 + size; i < capacity; i++) {
+                    temp[i] = null;
+                }
+                System.arraycopy(items, 0, temp, size / 2, size);
+                if (nextFirst > nextLast) {
+                    nextLast += size / 2 - 1;
+                    nextFirst += size / 2 + 1;
+                } else {
+                    nextFirst += size / 2 - 1;
+                    nextLast += size / 2 + 1;
+                }
+            } else {
+                for (int i = 0; i <= min; i++) {
+                    temp[i] = items[i];
+                }
+                for (int i = min + 1; i < capacity / 2 + min + 1; i++) {
+                    temp[i] = null;
+                }
+                System.arraycopy(items, max, temp, capacity / 2 + min + 1, size - max);
+                if (nextFirst > nextLast) {
+                    nextLast += 1;
+                    nextFirst += capacity / 2 - 1;
+                } else {
+                    nextFirst += 1;
+                    nextFirst += capacity / 2 - 1;
+                }
+            }
+            items =temp;
+        } else {
+            int start = nextFirst;
+            for(int i = 0; i < size; i++){
+                temp[i] = items[start];
+                start = start == items.length-1 ? 0 : start + 1;
+            }
+            for(int i = size; i < capacity; i++){
+                temp[i] = null;
+            }
+            nextLast = size;
+            items = temp;
+            nextFirst = items.length - 1;
+        }
+    }
+    @Override
+    public void addFirst(T item){
+        items[nextFirst] = item;
+        nextFirst = nextFirst == 0 ? items.length -1 : nextFirst - 1;
+        size += 1;
+        if(size == items.length){
+            resize(size*2);
+        }
+    }
+    @Override
     public void addLast(T item){
         items[nextLast] = item;
-        size += 1;
         nextLast = nextLast == items.length - 1 ? 0 : nextLast + 1;
+        size += 1;
+        if(size == items.length){
+            resize(size*2);
+        }
     }
 
-    public boolean isEmpty(){
-        return size == 0;
-    }
-
+    @Override
     public int size(){
         return size;
     }
-
+    @Override
     public void printDeque(){
         int start = nextFirst == items.length-1 ? 0 : nextFirst + 1;
         for(int i = 0; i < size; i++) {
@@ -71,25 +133,31 @@ public class ArrayDeque<T> implements Iterable<T>{
         }
         System.out.println(' ');
     }
-
+    @Override
     public T removeFirst() {
         if (size == 0) {
             return null;
         }
-        size -= 1;
+        if(items.length >= 16 && (double) size / (double) items.length < 0.25){
+            resize(items.length/4);
+        }
         nextFirst = nextFirst == items.length - 1 ? 0 : nextFirst + 1;
+        size -= 1;
         return items[nextFirst];
     }
-
+    @Override
     public T removeLast(){
         if(size == 0){
             return null;
         }
-        size -= 1;
+        if(items.length >= 16 && (double) size / (double) items.length < 0.25){
+            resize(items.length/4);
+        }
         nextLast = nextLast == 0 ? items.length - 1 : nextLast - 1;
+        size -= 1;
         return items[nextLast];
     }
-
+    @Override
     public T get(int index){
         if(index + 1 > size){
             return null;
