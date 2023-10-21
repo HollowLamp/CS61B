@@ -1,6 +1,7 @@
 package deque;
+import java.io.ObjectStreamException;
 import java.util.Iterator;
-public class ArrayDeque<T> implements Iterable<T>,Deque<T>{
+public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
     private T[] items;
     private int size;
     private int nextFirst;
@@ -12,41 +13,43 @@ public class ArrayDeque<T> implements Iterable<T>,Deque<T>{
         nextFirst = 0;
         nextLast = 1;
     }
+    @Override
+    public Iterator<T> iterator(){
+        return new ArrayDeque.DequeIterator();
+    }
+    private class DequeIterator implements Iterator<T> {
+        private int wizPos;
+        public DequeIterator(){
+            wizPos = 0;
+        }
+        public boolean hasNext(){
+            return wizPos < size;
+        }
+        public T next(){
+            T returnItem = get(wizPos);
+            wizPos += 1;
+            return returnItem;
+        }
+    }
 
-    public boolean equals(Object o) {
-        if (!(o instanceof ArrayDeque<?>) || ((ArrayDeque<?>) o).size != this.size) {
+    @Override
+    public boolean equals(Object o){
+        if(o == null){
             return false;
         }
-        for (int i = 0; i < size(); i++) {
-            if (((ArrayDeque<?>) o).get(i) != this.get(i)) {
+        if(! (o instanceof Deque<?>)){
+            return false;
+        }
+        if(size != ((Deque<?>) o).size()){
+            return false;
+        }
+        for(int i = 0; i < size; i++){
+            if(get(i) != ((Deque<?>) o).get(i)){
                 return false;
             }
         }
         return true;
     }
-
-    public Iterator<T> iterator() {
-        return new DequeIterator();
-    }
-
-    private class DequeIterator implements Iterator<T> {
-        private int wizPos;
-
-        public DequeIterator() {
-            wizPos = nextFirst == items.length - 1 ? 0 : nextFirst + 1;
-        }
-
-        public boolean hasNext() {
-            return wizPos != nextLast;
-        }
-
-        public T next() {
-            T returnItem = items[wizPos];
-            wizPos = wizPos == items.length - 1 ? 0 : wizPos + 1;
-            return returnItem;
-        }
-    }
-
     private void resize(int capacity) {
         T[] temp = (T[]) new Object[capacity];
         nextFirst = nextFirst == items.length - 1 ? 0 : nextFirst + 1;

@@ -2,7 +2,7 @@ package deque;
 
 import java.util.Iterator;
 
-public class LinkedListDeque<T> implements Iterable<T>,Deque<T> {
+public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
     public class ItemNode<T>{
         public T item;
         public ItemNode next;
@@ -18,40 +18,51 @@ public class LinkedListDeque<T> implements Iterable<T>,Deque<T> {
     private ItemNode sentinel;
     private int size;
 
-    public LinkedListDeque(){
-        sentinel = new ItemNode(null, null, null);
-        size = 0;
-    }
-
+    @Override
     public Iterator<T> iterator(){
         return new LinkedListDeque.DequeIterator();
     }
     private class DequeIterator implements Iterator<T> {
-        private  ItemNode p;
-
+        private int wizPos;
         public DequeIterator(){
-            p = sentinel.next;
+            wizPos = 0;
         }
         public boolean hasNext(){
-            return  p.next != null;
+            return wizPos < size;
         }
         public T next(){
-            T returnItem = (T) p.item;
-            p = p.next;
+            T returnItem = get(wizPos);
+            wizPos += 1;
             return returnItem;
         }
     }
 
+    @Override
     public boolean equals(Object o){
-        if (! (o instanceof LinkedListDeque<?>)|| ((LinkedListDeque<?>) o).size != this.size){
+        if(o == null){
             return false;
         }
-        for(int i = 0; i < size(); i++){
-            if(((LinkedListDeque<?>) o).get(i) != this.get(i)){
+        if(! (o instanceof Deque<?>)){
+            return false;
+        }
+        if(size != ((Deque<?>) o).size()){
+            return false;
+        }
+        for(int i = 0; i < size; i++){
+            if(get(i) != ((Deque<?>) o).get(i)){
                 return false;
             }
         }
         return true;
+    }
+
+    public boolean isEmpty() {
+        return Deque.super.isEmpty();
+    }
+
+    public LinkedListDeque(){
+        sentinel = new ItemNode(null, null, null);
+        size = 0;
     }
     @Override
     public void addFirst(T item){
