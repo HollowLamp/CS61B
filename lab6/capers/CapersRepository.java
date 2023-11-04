@@ -1,6 +1,8 @@
 package capers;
 
 import java.io.File;
+import java.io.IOException;
+
 import static capers.Utils.*;
 
 /** A repository for Capers 
@@ -18,7 +20,7 @@ public class CapersRepository {
     static final File CWD = new File(System.getProperty("user.dir"));
 
     /** Main metadata folder. */
-    static final File CAPERS_FOLDER = null; // TODO Hint: look at the `join`
+    static final File CAPERS_FOLDER =  Utils.join(CWD, ".capers");// TODO Hint: look at the `join`
                                             //      function in Utils
 
     /**
@@ -30,8 +32,12 @@ public class CapersRepository {
      *    - dogs/ -- folder containing all of the persistent data for dogs
      *    - story -- file containing the current story
      */
-    public static void setupPersistence() {
+    public static void setupPersistence() throws IOException {
         // TODO
+        File s = Utils.join(CAPERS_FOLDER, "story");
+        CAPERS_FOLDER.mkdir();
+        Dog.DOG_FOLDER.mkdir();
+        s.createNewFile();
     }
 
     /**
@@ -40,7 +46,12 @@ public class CapersRepository {
      * @param text String of the text to be appended to the story
      */
     public static void writeStory(String text) {
-        // TODO
+        //
+        File s = Utils.join(CAPERS_FOLDER, "story");
+        String tmp = readContentsAsString(s);
+        tmp = tmp + text + '\n';
+        writeContents(s, tmp);
+        System.out.println(readContentsAsString(s));
     }
 
     /**
@@ -48,8 +59,10 @@ public class CapersRepository {
      * three non-command arguments of args (name, breed, age).
      * Also prints out the dog's information using toString().
      */
-    public static void makeDog(String name, String breed, int age) {
-        // TODO
+    public static void makeDog(String name, String breed, int age) throws IOException {
+        Dog d = new Dog(name, breed, age);
+        d.saveDog();
+        System.out.println(d.toString());
     }
 
     /**
@@ -59,6 +72,9 @@ public class CapersRepository {
      * @param name String name of the Dog whose birthday we're celebrating.
      */
     public static void celebrateBirthday(String name) {
-        // TODO
+        File f = Utils.join(Dog.DOG_FOLDER, name);
+        Dog d = readObject(f, Dog.class);
+        d.haveBirthday();
+        writeObject(f, d);
     }
 }
