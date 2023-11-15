@@ -8,7 +8,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.Stack;
 
-public class BSTMap<K extends Comparable, V> implements Map61B <K, V>{
+public class BSTMap<K extends Comparable<K>, V> implements Map61B <K, V>{
     private class BSTNode {
         K key;
         V val;
